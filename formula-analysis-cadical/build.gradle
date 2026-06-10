@@ -1,6 +1,9 @@
+import org.ysb33r.gradle.gnumake.GnuMakeBuild
+
 plugins {
     id 'java-library'
     id 'de.featjar.java-application'
+    id 'org.ysb33r.gnumake' version '2.1.1'
 }
 
 dependencies {
@@ -13,3 +16,43 @@ license {
         licence_url = 'https://github.com/FeatureIDE/FeatJAR-formula-analysis-cadical'
     }
 }
+
+tasks.register('clone', Exec) {
+   commandLine 'git', 'clone', 'https://github.com/arminbiere/cadical.git'
+}
+
+tasks.register('configure', Exec) {
+   dependsOn tasks.clone
+   workingDir "cadical"
+   commandLine './configure'
+}
+
+// tasks.register('make', Exec) {
+//    dependsOn tasks.configure
+//    workingDir "cadical"
+//    commandLine 'make'
+// }
+
+tasks.named('make', GnuMakeBuild) {
+    dependsOn tasks.configure
+    workingDir = "cadical" 
+}
+
+tasks.register('copy', Copy) {
+    dependsOn tasks.make
+    dependsOn tasks.assemble
+    from 'cadical/build/cadical'
+    into System.getProperty('user.home') + '/.featjar-bin'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    filePermissions {
+     user {
+         write = true
+         read = true
+         execute = true
+     }
+     other.execute = false
+    }
+}
+
+
+
