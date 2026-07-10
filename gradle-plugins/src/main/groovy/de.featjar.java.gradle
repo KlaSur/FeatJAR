@@ -1,6 +1,7 @@
 /**
  * Contains conventions shared between Gradle builds that compile Java code.
  */
+
 plugins {
     id 'java'
     id 'maven-publish'
@@ -80,9 +81,10 @@ license {
 }
 
 task copyBinaries (type: Copy) {
+    // dependsOn 'copyCadical'
     from 'src/main/resources/bin/.'
     into System.getProperty('user.home') + '/.featjar-bin'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    duplicatesStrategy = DuplicatesStrategy.WARN
     filePermissions {
      user {
          write = true
@@ -92,7 +94,7 @@ task copyBinaries (type: Copy) {
      other.execute = false
  }
 }
-tasks.matching { it != copyBinaries }.all { it.dependsOn copyBinaries }
+// tasks.matching { it != copyBinaries }.all { it.dependsOn copyBinaries }
 
 spotless {
     enforceCheck = false // TODO: discuss whether to enable always

@@ -1,6 +1,9 @@
+import org.ysb33r.gradle.gnumake.GnuMakeBuild
+
 plugins {
     id 'java-library'
     id 'de.featjar.java-application'
+    id 'org.ysb33r.gnumake' version '2.1.1'
 }
 
 dependencies {
@@ -11,5 +14,41 @@ dependencies {
 license {
     ext {
         licence_url = 'https://github.com/FeatureIDE/FeatJAR-formula-analysis-cadical'
+    }
+}
+
+tasks.register('clone', Exec) {
+   commandLine 'git', 'clone', 'https://github.com/arminbiere/kissat.git'
+}
+
+// here the build works using CC=clang
+// I always executed the task using ./gradlew formula-analysis-kissat:copyKissat
+tasks.register('configure', Exec) {
+   dependsOn tasks.clone
+   workingDir "kissat"
+   commandLine './configure', 'CC=clang'
+}
+
+tasks.named('make', GnuMakeBuild) {
+    dependsOn tasks.configure
+    workingDir = "kissat"
+}
+
+tasks.register('copyKissat', Copy) {
+    dependsOn tasks.make
+    dependsOn tasks.assemble
+
+    from 'kissat/build/kissat'
+    from 'src/main/resources/bin/.'
+
+    into System.getProperty('user.home') + '/.featjar-bin'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    filePermissions {
+     user {
+         write = true
+         read = true
+         execute = true
+     }
+     other.execute = false
     }
 }

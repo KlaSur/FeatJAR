@@ -17,42 +17,63 @@ license {
     }
 }
 
-tasks.register('clone', Exec) {
+tasks.register('cloneCadical', Exec) {
    commandLine 'git', 'clone', 'https://github.com/arminbiere/cadical.git'
 }
 
-tasks.register('configure', Exec) {
-   dependsOn tasks.clone
+tasks.register('cloneCadiback', Exec) {
+   commandLine 'git', 'clone', 'https://github.com/arminbiere/cadiback.git'
+}
+
+
+tasks.register('configureCadical', Exec) {
+   dependsOn tasks.cloneCadical
    workingDir "cadical"
+   commandLine './configure', 'CXX=clang++'
+}
+
+// here the build works using CXX=clang++
+task makeCadical (type:GnuMakeBuild) {
+    dependsOn tasks.configureCadical
+    workingDir = "cadical"
+}
+
+tasks.register('configureCadiback', Exec) {
+   dependsOn tasks.cloneCadiback
+   dependsOn tasks.makeCadical
+   workingDir "cadiback"
    commandLine './configure'
 }
 
-// tasks.register('make', Exec) {
-//    dependsOn tasks.configure
-//    workingDir "cadical"
-//    commandLine 'make'
+// does not work yet, throws same error as before:
+// g++: fatal error: cannot execute 'cc1plus': 
+// posix_spawnp: No such file or directory.
+// compilation terminated.
+// here. I used: ./gradlew formula-analysis-cadical:makeCadiback
+task makeCadiback (type:GnuMakeBuild) {
+    dependsOn tasks.configureCadiback
+    workingDir = "cadiback"
+}
+
+// tasks.register('copyCadical', Copy) {
+//     dependsOn tasks.make
+//     dependsOn tasks.assemble
+
+//     from 'cadical/build/cadical'
+//     from 'cadiback/build/cadiback'
+//     from 'src/main/resources/bin/.'
+
+//     into System.getProperty('user.home') + '/.featjar-bin'
+//     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//     filePermissions {
+//      user {
+//          write = true
+//          read = true
+//          execute = true
+//      }
+//      other.execute = false
+//     }
 // }
-
-tasks.named('make', GnuMakeBuild) {
-    dependsOn tasks.configure
-    workingDir = "cadical" 
-}
-
-tasks.register('copy', Copy) {
-    dependsOn tasks.make
-    dependsOn tasks.assemble
-    from 'cadical/build/cadical'
-    into System.getProperty('user.home') + '/.featjar-bin'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    filePermissions {
-     user {
-         write = true
-         read = true
-         execute = true
-     }
-     other.execute = false
-    }
-}
 
 
 
