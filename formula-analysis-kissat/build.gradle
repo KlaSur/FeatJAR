@@ -3,6 +3,7 @@ import org.ysb33r.gradle.gnumake.GnuMakeBuild
 plugins {
     id 'java-library'
     id 'de.featjar.java-application'
+    // plugin for Gradle that allows invoking GNU Make builds
     id 'org.ysb33r.gnumake' version '2.1.1'
 }
 
@@ -17,12 +18,12 @@ license {
     }
 }
 
+// compile kissat locally by cloning the repo, executing the configure script and 
+// executing make
 tasks.register('clone', Exec) {
    commandLine 'git', 'clone', 'https://github.com/arminbiere/kissat.git'
 }
 
-// here the build works using CC=clang
-// I always executed the task using ./gradlew formula-analysis-kissat:copyKissat
 tasks.register('configure', Exec) {
    dependsOn tasks.clone
    workingDir "kissat"
@@ -34,6 +35,8 @@ tasks.named('make', GnuMakeBuild) {
     workingDir = "kissat"
 }
 
+// prioritize own compilation of kissat when copying kissat binaries to 
+// /.featjar-bin in the user home directory
 tasks.register('copyKissat', Copy) {
     dependsOn tasks.make
     dependsOn tasks.assemble

@@ -3,6 +3,7 @@ import org.ysb33r.gradle.gnumake.GnuMakeBuild
 plugins {
     id 'java-library'
     id 'de.featjar.java-application'
+    // plugin for Gradle that allows invoking GNU Make builds
     id 'org.ysb33r.gnumake' version '2.1.1'
 }
 
@@ -17,63 +18,43 @@ license {
     }
 }
 
-tasks.register('cloneCadical', Exec) {
+// compile cadical locally by cloning the repo, executing the configure script and 
+// executing make
+tasks.register('clone', Exec) {
    commandLine 'git', 'clone', 'https://github.com/arminbiere/cadical.git'
 }
 
-tasks.register('cloneCadiback', Exec) {
-   commandLine 'git', 'clone', 'https://github.com/arminbiere/cadiback.git'
-}
-
-
-tasks.register('configureCadical', Exec) {
-   dependsOn tasks.cloneCadical
+tasks.register('configure', Exec) {
+   dependsOn tasks.clone
    workingDir "cadical"
    commandLine './configure', 'CXX=clang++'
 }
 
-// here the build works using CXX=clang++
-task makeCadical (type:GnuMakeBuild) {
-    dependsOn tasks.configureCadical
+tasks.named('make', GnuMakeBuild) {
+    dependsOn tasks.configure
     workingDir = "cadical"
 }
 
-tasks.register('configureCadiback', Exec) {
-   dependsOn tasks.cloneCadiback
-   dependsOn tasks.makeCadical
-   workingDir "cadiback"
-   commandLine './configure'
+// prioritize own compilation of cadical when copying cadical binaries to 
+// /.featjar-bin in the user home directory
+tasks.register('copyCadical', Copy) {
+    dependsOn tasks.make
+    dependsOn tasks.assemble
+
+    from 'cadical/build/cadical'
+    from 'src/main/resources/bin/.'
+
+    into System.getProperty('user.home') + '/.featjar-bin'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    filePermissions {
+     user {
+         write = true
+         read = true
+         execute = true
+     }
+     other.execute = false
+    }
 }
-
-// does not work yet, throws same error as before:
-// g++: fatal error: cannot execute 'cc1plus': 
-// posix_spawnp: No such file or directory.
-// compilation terminated.
-// here. I used: ./gradlew formula-analysis-cadical:makeCadiback
-task makeCadiback (type:GnuMakeBuild) {
-    dependsOn tasks.configureCadiback
-    workingDir = "cadiback"
-}
-
-// tasks.register('copyCadical', Copy) {
-//     dependsOn tasks.make
-//     dependsOn tasks.assemble
-
-//     from 'cadical/build/cadical'
-//     from 'cadiback/build/cadiback'
-//     from 'src/main/resources/bin/.'
-
-//     into System.getProperty('user.home') + '/.featjar-bin'
-//     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//     filePermissions {
-//      user {
-//          write = true
-//          read = true
-//          execute = true
-//      }
-//      other.execute = false
-//     }
-// }
 
 
 
