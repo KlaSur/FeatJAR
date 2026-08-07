@@ -1,10 +1,10 @@
-import org.ysb33r.gradle.gnumake.GnuMakeBuild
+// import org.ysb33r.gradle.gnumake.GnuMakeBuild
 
 plugins {
     id 'java-library'
     id 'de.featjar.java-application'
     // plugin for Gradle that allows invoking GNU Make builds
-    id 'org.ysb33r.gnumake' version '2.1.1'
+    // id 'org.ysb33r.gnumake' version '2.1.1'
 }
 
 dependencies {
@@ -20,41 +20,41 @@ license {
 
 // compile cadical locally by cloning the repo, executing the configure script and 
 // executing make
-tasks.register('clone', Exec) {
-   commandLine 'git', 'clone', 'https://github.com/arminbiere/cadical.git'
-}
+// tasks.register('clone', Exec) {
+//    commandLine 'git', 'clone', 'https://github.com/arminbiere/cadical.git'
+// }
 
-tasks.register('configure', Exec) {
-   dependsOn tasks.clone
-   workingDir "cadical"
-   commandLine './configure', 'CXX=clang++'
-}
+// tasks.register('configure', Exec) {
+//    dependsOn tasks.clone
+//    workingDir "cadical"
+//    commandLine './configure', 'CXX=clang++'
+// }
 
-tasks.named('make', GnuMakeBuild) {
-    dependsOn tasks.configure
-    workingDir = "cadical"
-}
+// tasks.named('make', GnuMakeBuild) {
+//     dependsOn tasks.configure
+//     workingDir = "cadical"
+// }
 
-// prioritize own compilation of cadical when copying cadical binaries to 
-// /.featjar-bin in the user home directory
-tasks.register('copyCadical', Copy) {
-    dependsOn tasks.make
-    dependsOn tasks.assemble
+// // prioritize own compilation of cadical when copying cadical binaries to 
+// // /.featjar-bin in the user home directory
+// tasks.register('copyCadical', Copy) {
+//     dependsOn tasks.make
+//     dependsOn tasks.assemble
 
-    from 'cadical/build/cadical'
-    from 'src/main/resources/bin/.'
+//     from 'cadical/build/cadical'
+//     from 'src/main/resources/bin/.'
 
-    into System.getProperty('user.home') + '/.featjar-bin'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    filePermissions {
-     user {
-         write = true
-         read = true
-         execute = true
-     }
-     other.execute = false
-    }
-}
+//     into System.getProperty('user.home') + '/.featjar-bin'
+//     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//     filePermissions {
+//      user {
+//          write = true
+//          read = true
+//          execute = true
+//      }
+//      other.execute = false
+//     }
+// }
 
 
 

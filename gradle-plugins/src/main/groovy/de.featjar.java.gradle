@@ -94,7 +94,7 @@ task copyBinaries (type: Copy) {
      other.execute = false
  }
 }
-// tasks.matching { it != copyBinaries }.all { it.dependsOn copyBinaries }
+tasks.matching { it != copyBinaries }.all { it.dependsOn copyBinaries }
 
 spotless {
     enforceCheck = false // TODO: discuss whether to enable always

@@ -1,10 +1,10 @@
-import org.ysb33r.gradle.gnumake.GnuMakeBuild
+// import org.ysb33r.gradle.gnumake.GnuMakeBuild
 
 plugins {
     id 'java-library'
     id 'de.featjar.java-application'
     // plugin for Gradle that allows invoking GNU Make builds
-    id 'org.ysb33r.gnumake' version '2.1.1'
+    // id 'org.ysb33r.gnumake' version '2.1.1'
 }
 
 dependencies {
@@ -20,38 +20,38 @@ license {
 
 // compile kissat locally by cloning the repo, executing the configure script and 
 // executing make
-tasks.register('clone', Exec) {
-   commandLine 'git', 'clone', 'https://github.com/arminbiere/kissat.git'
-}
+// tasks.register('clone', Exec) {
+//    commandLine 'git', 'clone', 'https://github.com/arminbiere/kissat.git'
+// }
 
-tasks.register('configure', Exec) {
-   dependsOn tasks.clone
-   workingDir "kissat"
-   commandLine './configure', 'CC=clang'
-}
+// tasks.register('configure', Exec) {
+//    dependsOn tasks.clone
+//    workingDir "kissat"
+//    commandLine './configure', 'CC=clang'
+// }
 
-tasks.named('make', GnuMakeBuild) {
-    dependsOn tasks.configure
-    workingDir = "kissat"
-}
+// tasks.named('make', GnuMakeBuild) {
+//     dependsOn tasks.configure
+//     workingDir = "kissat"
+// }
 
-// prioritize own compilation of kissat when copying kissat binaries to 
-// /.featjar-bin in the user home directory
-tasks.register('copyKissat', Copy) {
-    dependsOn tasks.make
-    dependsOn tasks.assemble
+// // prioritize own compilation of kissat when copying kissat binaries to 
+// // /.featjar-bin in the user home directory
+// tasks.register('copyKissat', Copy) {
+//     dependsOn tasks.make
+//     dependsOn tasks.assemble
 
-    from 'kissat/build/kissat'
-    from 'src/main/resources/bin/.'
+//     from 'kissat/build/kissat'
+//     from 'src/main/resources/bin/.'
 
-    into System.getProperty('user.home') + '/.featjar-bin'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    filePermissions {
-     user {
-         write = true
-         read = true
-         execute = true
-     }
-     other.execute = false
-    }
-}
+//     into System.getProperty('user.home') + '/.featjar-bin'
+//     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//     filePermissions {
+//      user {
+//          write = true
+//          read = true
+//          execute = true
+//      }
+//      other.execute = false
+//     }
+// }
