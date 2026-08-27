@@ -23,8 +23,14 @@ package de.featjar.analysis.ganak.solver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
 import de.featjar.Common;
+import de.featjar.analysis.ganak.cli.VariableNamesList;
 import de.featjar.analysis.ganak.computation.ComputeCountSolutionGanak;
+import de.featjar.analysis.ganak.computation.ComputeSolutionGanak;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.data.Result;
@@ -38,6 +44,8 @@ import de.featjar.formula.structure.connective.Implies;
 import de.featjar.formula.structure.connective.Or;
 import de.featjar.formula.structure.connective.Not;
 import de.featjar.formula.structure.predicate.Literal;
+import net.bytebuddy.implementation.bind.annotation.Argument.BindingMechanic;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -54,6 +62,25 @@ public class GanakSolverTest extends Common {
         FeatJAR.deinitialize();
     }
 
+     @Test
+    public void formulaIsSatisfiable() {
+        final Literal a = Expressions.literal("a");
+        final Literal b = Expressions.literal("b");
+        final Literal c = Expressions.literal("c");
+
+        final Or or = new Or(a, b, c);
+        final Or notOr = new Or(new Not(a), new Not(b), new Not(c));
+        final And formula = new And(or, notOr);
+
+        IFormula cnf = formula.toCNF().orElseThrow();
+        final Result<Boolean> result = Computations.of(cnf)
+                .map(ComputeBooleanClauseList::new)
+                .map(ComputeSolutionGanak::new)
+                .computeResult();
+        assertTrue(result.isPresent(), result::printProblems);
+        assertEquals(true,result.get());
+    }
+
     @Test
     public void formulaHas6Solutions() {
         final Literal a = Expressions.literal("a");
@@ -61,19 +88,64 @@ public class GanakSolverTest extends Common {
         final Literal c = Expressions.literal("c");
 
         final Or or = new Or(a, b, c);
-        final Or not_or = new Or(new Not(a), new Not(b), new Not(c));
-        final And formula = new And(or, not_or);
+        final Or notOr = new Or(new Not(a), new Not(b), new Not(c));
+        final And formula = new And(or, notOr);
 
-        checkSolution(formula);
-    }
-
-    private void checkSolution(final IFormula formula) {
         IFormula cnf = formula.toCNF().orElseThrow();
-        final Result<Integer> result = Computations.of(cnf)
+        final Result<BigInteger> result = Computations.of(cnf)
                 .map(ComputeBooleanClauseList::new)
                 .map(ComputeCountSolutionGanak::new)
                 .computeResult();
         assertTrue(result.isPresent(), result::printProblems);
-        assertEquals(6,result.get());
+        assertEquals(BigInteger.valueOf(6),result.get());
+    }
+
+    @Test
+    public void formulaHas4SolutionsWithProjection() {
+        final Literal a = Expressions.literal("a");
+        final Literal b = Expressions.literal("b");
+        final Literal c = Expressions.literal("c");
+
+        final Or or = new Or(a, b, c);
+        final Or notOr = new Or(new Not(a), new Not(b), new Not(c));
+        final And formula = new And(or, notOr);
+
+        List<String> variablesToKeep = new ArrayList<>();
+        variablesToKeep.add("a");
+        variablesToKeep.add("b");
+        VariableNamesList variableNamesToKeep = new VariableNamesList(variablesToKeep);
+
+        IFormula cnf = formula.toCNF().orElseThrow();
+        final Result<BigInteger> result = Computations.of(cnf)
+                .map(ComputeBooleanClauseList::new)
+                .map(ComputeCountSolutionGanak::new)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_KEEP, variableNamesToKeep)
+                .computeResult();
+        assertTrue(result.isPresent(), result::printProblems);
+        assertEquals(BigInteger.valueOf(4),result.get());
+    }
+
+    @Test
+    public void formulaHas4SolutionsWithSlicing() {
+        final Literal a = Expressions.literal("a");
+        final Literal b = Expressions.literal("b");
+        final Literal c = Expressions.literal("c");
+
+        final Or or = new Or(a, b, c);
+        final Or notOr = new Or(new Not(a), new Not(b), new Not(c));
+        final And formula = new And(or, notOr);
+
+        List<String> variableToRemove = new ArrayList<>();
+        variableToRemove.add("a");
+        VariableNamesList variableNameToRemove = new VariableNamesList(variableToRemove);
+
+        IFormula cnf = formula.toCNF().orElseThrow();
+        final Result<BigInteger> result = Computations.of(cnf)
+                .map(ComputeBooleanClauseList::new)
+                .map(ComputeCountSolutionGanak::new)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_REMOVE, variableNameToRemove)
+                .computeResult();
+        assertTrue(result.isPresent(), result::printProblems);
+        assertEquals(BigInteger.valueOf(4),result.get());
     }
 }

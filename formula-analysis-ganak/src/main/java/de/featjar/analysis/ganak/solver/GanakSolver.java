@@ -21,25 +21,35 @@
 package de.featjar.analysis.ganak.solver;
 
 import de.featjar.analysis.ISolver;
-import de.featjar.analysis.RuntimeTimeoutException;
 import de.featjar.analysis.ganak.bin.GanakBinary;
+import de.featjar.analysis.ganak.cli.VariableNamesList;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.Result;
 import de.featjar.base.env.Process;
 import de.featjar.base.env.TempFile;
 import de.featjar.base.io.IO;
+import de.featjar.formula.VariableMap;
+import de.featjar.formula.assignment.BooleanAssignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-import de.featjar.formula.assignment.BooleanSolution;
+import de.featjar.formula.assignment.conversion.ComputeBooleanClauseList;
 import de.featjar.formula.io.dimacs.BooleanAssignmentListDimacsFormat;
+
+import java.math.BigInteger;
+import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GanakSolver implements ISolver {
     protected final BooleanAssignmentList formula;
     protected Duration timeout = Duration.ZERO;
     protected boolean isTimeoutOccurred;
+
+    // regex for matching the solution line 
+    protected static Pattern pattern = Pattern.compile("c s exact arb int (\\d+)");
 
     public GanakSolver(BooleanAssignmentList formula) { // todo: use boolean clause list input
         this.formula = formula;
@@ -63,14 +73,20 @@ public class GanakSolver implements ISolver {
         return isTimeoutOccurred;
     }
 
-    public Result<Integer> countSolution() {
+    public Result<Boolean> hasSolution() {
+        if (countSolution().get().compareTo(BigInteger.ONE) >= 0) {
+            return Result.of(true);
+        }
+        return Result.of(false);
+    }
+
+    public Result<BigInteger> countSolution() {
         isTimeoutOccurred = false;
         GanakBinary extension = FeatJAR.extension(GanakBinary.class);
         try (TempFile tempFile = new TempFile("ganakInput", ".dimacs")) {
             IO.save(formula, tempFile.getPath(), new BooleanAssignmentListDimacsFormat());
             Process process = extension.getProcess(
                     tempFile.getPath().toString());
-
             return process.get().mapResult(this::parseCount);
         } catch (Exception e) {
             FeatJAR.log().error(e);
@@ -78,15 +94,55 @@ public class GanakSolver implements ISolver {
         }
     }
 
-    private Result<Integer> parseCount(List<String> lines) {
+    public Result<BigInteger> countSolution(VariableNamesList include, VariableNamesList exclude) {
+        isTimeoutOccurred = false;
+        GanakBinary extension = FeatJAR.extension(GanakBinary.class);
+        try (TempFile tempFile = new TempFile("ganakInput", ".dimacs")) {
+            IO.save(formula, tempFile.getPath(), new BooleanAssignmentListDimacsFormat());
+
+            // get variable indices depending on whether exclude or include is set
+            VariableMap variableMap = formula.getVariableMap();
+            BooleanAssignment indices = new BooleanAssignment();
+            if (!exclude.isEmpty()) {
+                VariableMap slicedVariableMap = variableMap.clone();
+                for (String variable : exclude) {
+                    slicedVariableMap.remove(variable);
+                }
+                indices = slicedVariableMap.getVariables();
+            } else if (!include.isEmpty()) {
+                indices = variableMap.getVariables(include);
+            }
+
+            // construct a DIMACS comment which indicates which variables are in 
+            // the projection set 
+            String comment = "c p show ";
+            for (int index : indices.get()) {
+                comment += index + " ";
+            }
+            comment += "0 \n";
+
+            // append the comment as the last line to the DIMACS file
+            IO.append(comment, tempFile.getPath());
+            
+            Process process = extension.getProcess(
+                    tempFile.getPath().toString());
+            return process.get().mapResult(this::parseCount);
+        } catch (Exception e) {
+            FeatJAR.log().error(e);
+            return Result.empty(e);
+        }
+    }
+
+    private Result<BigInteger> parseCount(List<String> lines) {
         if (lines.isEmpty()) {
             throw new RuntimeException("Not output from solver");
         }
-        
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines.get(i).startsWith("c s exact arb int")) {
-                int value = Integer.parseInt(lines.get(i).replaceAll("[^0-9]", ""));
-                return Result.of(value);
+
+        for (String line : lines) {
+            Matcher matcher = pattern.matcher(line);
+
+            if (matcher.matches()) {
+                return Result.of(new BigInteger(matcher.group(1)));
             }
         }
 

@@ -21,15 +21,29 @@
 package de.featjar.analysis.ganak.cli;
 
 import de.featjar.analysis.ganak.computation.ComputeCountSolutionGanak;
+import de.featjar.base.cli.ListOption;
+import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.io.format.IFormat;
+import de.featjar.formula.VariableMap;
 import de.featjar.formula.assignment.BooleanAssignmentGroups;
 import de.featjar.formula.assignment.BooleanAssignmentList;
+import de.featjar.formula.combination.VariableSetsCombinationSpecification;
 import de.featjar.formula.io.csv.BooleanAssignmentGroupsCSVFormat;
+
+import java.math.BigInteger;
+import java.util.List;
 import java.util.Optional;
 
-public class CountCommand extends AGanakAnalysisCommand<Integer> {
+public class CountCommand extends AGanakAnalysisCommand<BigInteger> {
+    /**
+    * Literals to be kept
+    */
+    public static final ListOption<String> LITERALS_PROJECT_OPTION = (ListOption<String>)
+            Option.newListOption("project", Option.StringParser)
+                    .setDescription(
+                            "Literals to be projected. If not set, all features will be projected.");
 
     @Override
     public Optional<String> getDescription() {
@@ -37,9 +51,14 @@ public class CountCommand extends AGanakAnalysisCommand<Integer> {
     }
 
     @Override
-    public IComputation<Integer> newAnalysis(
+    public IComputation<BigInteger> newAnalysis(
             OptionList optionParser, IComputation<BooleanAssignmentList> formula) {
-        return formula.map(ComputeCountSolutionGanak::new);
+        List<String> projectLiterals = 
+                optionParser.getResult(LITERALS_PROJECT_OPTION).orElse(List.of());
+        VariableNamesList variablesToKeep = new VariableNamesList(projectLiterals);
+           
+        return formula.map(ComputeCountSolutionGanak::new)
+        .set(ComputeCountSolutionGanak.VARIABLES_TO_KEEP, variablesToKeep);
     }
 
     @Override
