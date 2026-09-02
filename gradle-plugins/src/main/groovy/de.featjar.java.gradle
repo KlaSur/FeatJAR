@@ -81,18 +81,17 @@ license {
 }
 
 task copyBinaries (type: Copy) {
-    // dependsOn 'copyCadical'
     from 'src/main/resources/bin/.'
     into System.getProperty('user.home') + '/.featjar-bin'
-    duplicatesStrategy = DuplicatesStrategy.WARN
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     filePermissions {
-     user {
-         write = true
-         read = true
-         execute = true
-     }
-     other.execute = false
- }
+    user {
+        write = true
+        read = true
+        execute = true
+    }
+    other.execute = false
+    }
 }
 // tasks.matching { it != copyBinaries }.all { it.dependsOn copyBinaries }
 

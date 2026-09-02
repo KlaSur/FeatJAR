@@ -47,12 +47,12 @@ tasks.register('copyCadical', Copy) {
     into System.getProperty('user.home') + '/.featjar-bin'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     filePermissions {
-     user {
-         write = true
-         read = true
-         execute = true
-     }
-     other.execute = false
+    user {
+        write = true
+        read = true
+        execute = true
+    }
+    other.execute = false
     }
 }
 
