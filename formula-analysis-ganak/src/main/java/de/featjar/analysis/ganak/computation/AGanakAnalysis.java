@@ -30,6 +30,11 @@ import de.featjar.formula.assignment.BooleanAssignmentList;
 import java.time.Duration;
 import java.util.List;
 
+/**
+ * Base class for analyses using a Ganak Solver.
+ * 
+ * @param <T> type of the analysis result
+ */
 public abstract class AGanakAnalysis<T> extends AComputation<T> {
     public static final Dependency<BooleanAssignmentList> FORMULA =
             Dependency.newDependency(BooleanAssignmentList.class);

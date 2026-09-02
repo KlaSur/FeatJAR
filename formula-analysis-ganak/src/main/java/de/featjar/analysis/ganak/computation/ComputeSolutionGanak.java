@@ -27,6 +27,9 @@ import de.featjar.formula.assignment.BooleanAssignmentList;
 
 import java.util.List;
 
+/**
+ * An analysis for checking whether the given formula is satisfiable.
+ */
 public class ComputeSolutionGanak extends AGanakAnalysis<Boolean> {
 
     public ComputeSolutionGanak(IComputation<BooleanAssignmentList> cnfFormula) {

@@ -26,6 +26,10 @@ import de.featjar.base.env.HostEnvironment;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 
+/**
+ * A native binary for the Ganak Solver bundled with FeatJAR. 
+ * For more information, see {@link ABinary}.
+ */
 public class GanakBinary extends ABinary {
     public GanakBinary() throws IOException {}
 
