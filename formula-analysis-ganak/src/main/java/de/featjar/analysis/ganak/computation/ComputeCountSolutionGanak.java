@@ -22,7 +22,6 @@ package de.featjar.analysis.ganak.computation;
 
 import de.featjar.base.computation.ComputeConstant;
 import de.featjar.base.computation.Dependency;
-import de.featjar.analysis.ganak.cli.VariableNamesList;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
@@ -32,17 +31,21 @@ import de.featjar.formula.assignment.BooleanAssignmentList;
 import java.math.BigInteger;
 import java.util.List;
 
+/**
+ * An analysis for computing the number of satisfying assignments of a formula, optionally with 
+ * projection or slicing, using the Ganak Solver.
+ */
 public class ComputeCountSolutionGanak extends AGanakAnalysis<BigInteger> {
-    public static final Dependency<VariableNamesList> VARIABLES_TO_KEEP =
-            Dependency.newDependency(VariableNamesList.class);
+    public static final Dependency<BooleanAssignment> VARIABLES_TO_REMOVE =
+            Dependency.newDependency(BooleanAssignment.class);
 
-    public static final Dependency<VariableNamesList> VARIABLES_TO_REMOVE =
-            Dependency.newDependency(VariableNamesList.class);
+    public static final Dependency<BooleanAssignment> VARIABLES_TO_KEEP =
+            Dependency.newDependency(BooleanAssignment.class);
 
 
     public ComputeCountSolutionGanak(IComputation<BooleanAssignmentList> cnfFormula) {
-        super(cnfFormula, new ComputeConstant<>(new VariableNamesList()), 
-            new ComputeConstant<>(new VariableNamesList()));
+        super(cnfFormula, new ComputeConstant<>(new BooleanAssignment()), 
+            new ComputeConstant<>(new BooleanAssignment()));
     }
 
     public ComputeCountSolutionGanak(ComputeCountSolutionGanak other) {
@@ -51,14 +54,24 @@ public class ComputeCountSolutionGanak extends AGanakAnalysis<BigInteger> {
 
     @Override
     public Result<BigInteger> compute(List<Object> dependencyList, Progress progress) {
-        VariableNamesList inlcude = VARIABLES_TO_KEEP.get(dependencyList);
-        VariableNamesList exclude = VARIABLES_TO_REMOVE.get(dependencyList);
+        BooleanAssignment variablesToRemove = VARIABLES_TO_REMOVE.get(dependencyList);
+        BooleanAssignment variablesToKeep = VARIABLES_TO_KEEP.get(dependencyList);
 
-
-        if (!inlcude.isEmpty() || !exclude.isEmpty()) {
-           return initializeSolver(dependencyList).countSolution(inlcude, exclude);
+        BooleanAssignment include = new BooleanAssignment();
+        // no variables specified -> normal model counting
+        if (variablesToKeep.isEmpty() && variablesToRemove.isEmpty()) {
+            return initializeSolver(dependencyList).countSolution();
+        // only projected variables specified
+        } else if (!variablesToKeep.isEmpty() && variablesToRemove.isEmpty()) {
+            include = variablesToKeep;
+        // as soon as sliced variables are specified, they have a higher priority 
+        // than projected variables
+        } else {
+            BooleanAssignmentList formula = FORMULA.get(dependencyList);
+            include = formula.getVariableMap().getVariables();
+            include = include.removeAll(variablesToRemove);
         }
 
-        return initializeSolver(dependencyList).countSolution();
+        return initializeSolver(dependencyList).countSolution(include);
     }
 }

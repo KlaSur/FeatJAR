@@ -22,27 +22,26 @@ package de.featjar.analysis.ganak.solver;
 
 import de.featjar.analysis.ISolver;
 import de.featjar.analysis.ganak.bin.GanakBinary;
-import de.featjar.analysis.ganak.cli.VariableNamesList;
 import de.featjar.base.FeatJAR;
+import de.featjar.formula.VariableMap;
 import de.featjar.base.data.Result;
 import de.featjar.base.env.Process;
 import de.featjar.base.env.TempFile;
 import de.featjar.base.io.IO;
-import de.featjar.formula.VariableMap;
 import de.featjar.formula.assignment.BooleanAssignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-import de.featjar.formula.assignment.conversion.ComputeBooleanClauseList;
 import de.featjar.formula.io.dimacs.BooleanAssignmentListDimacsFormat;
 
 import java.math.BigInteger;
-import java.nio.file.Path;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * A solver implementation for the Ganak Solver.
+ */
 public class GanakSolver implements ISolver {
     protected final BooleanAssignmentList formula;
     protected Duration timeout = Duration.ZERO;
@@ -73,6 +72,10 @@ public class GanakSolver implements ISolver {
         return isTimeoutOccurred;
     }
 
+    /**
+     * Checks whether the formula is satisfiable.
+     * @return true if the formula has at least one satisfying assignment, false otherwise.
+     */
     public Result<Boolean> hasSolution() {
         if (countSolution().get().compareTo(BigInteger.ONE) >= 0) {
             return Result.of(true);
@@ -80,11 +83,16 @@ public class GanakSolver implements ISolver {
         return Result.of(false);
     }
 
+    /**
+     * Counts the number of satisfying assignments of a formula.
+     * @return the number of satisfying assignments, if present
+     */
     public Result<BigInteger> countSolution() {
         isTimeoutOccurred = false;
         GanakBinary extension = FeatJAR.extension(GanakBinary.class);
         try (TempFile tempFile = new TempFile("ganakInput", ".dimacs")) {
             IO.save(formula, tempFile.getPath(), new BooleanAssignmentListDimacsFormat());
+            //System.out.println(formula);
             Process process = extension.getProcess(
                     tempFile.getPath().toString());
             return process.get().mapResult(this::parseCount);
@@ -94,29 +102,22 @@ public class GanakSolver implements ISolver {
         }
     }
 
-    public Result<BigInteger> countSolution(VariableNamesList include, VariableNamesList exclude) {
+    /**
+     * Counts the number of satisfying assignments of a formula, but with the additional option to 
+     * project some variables, given their indices to which they are mapped in the {@link VariableMap}.
+     * @param include variable indices to be projected
+     * @return the number of satisfying assignments, if present
+     */
+    public Result<BigInteger> countSolution(BooleanAssignment include) {
         isTimeoutOccurred = false;
         GanakBinary extension = FeatJAR.extension(GanakBinary.class);
         try (TempFile tempFile = new TempFile("ganakInput", ".dimacs")) {
             IO.save(formula, tempFile.getPath(), new BooleanAssignmentListDimacsFormat());
 
-            // get variable indices depending on whether exclude or include is set
-            VariableMap variableMap = formula.getVariableMap();
-            BooleanAssignment indices = new BooleanAssignment();
-            if (!exclude.isEmpty()) {
-                VariableMap slicedVariableMap = variableMap.clone();
-                for (String variable : exclude) {
-                    slicedVariableMap.remove(variable);
-                }
-                indices = slicedVariableMap.getVariables();
-            } else if (!include.isEmpty()) {
-                indices = variableMap.getVariables(include);
-            }
-
             // construct a DIMACS comment which indicates which variables are in 
             // the projection set 
             String comment = "c p show ";
-            for (int index : indices.get()) {
+            for (int index : include.get()) {
                 comment += index + " ";
             }
             comment += "0 \n";
@@ -133,6 +134,11 @@ public class GanakSolver implements ISolver {
         }
     }
 
+    /**
+     * Parses the output from the Ganak Solver.
+     * @param lines the output from the Ganak Solver
+     * @return the solution line containing the number of satisfying assignments, if present
+     */
     private Result<BigInteger> parseCount(List<String> lines) {
         if (lines.isEmpty()) {
             throw new RuntimeException("Not output from solver");
