@@ -24,27 +24,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 
 import de.featjar.Common;
-import de.featjar.analysis.ganak.cli.VariableNamesList;
 import de.featjar.analysis.ganak.computation.ComputeCountSolutionGanak;
 import de.featjar.analysis.ganak.computation.ComputeSolutionGanak;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.data.Result;
-import de.featjar.formula.assignment.BooleanSolution;
+import de.featjar.formula.assignment.BooleanAssignment;
 import de.featjar.formula.assignment.conversion.ComputeBooleanClauseList;
 import de.featjar.formula.structure.Expressions;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
-import de.featjar.formula.structure.connective.BiImplies;
-import de.featjar.formula.structure.connective.Implies;
 import de.featjar.formula.structure.connective.Or;
 import de.featjar.formula.structure.connective.Not;
 import de.featjar.formula.structure.predicate.Literal;
-import net.bytebuddy.implementation.bind.annotation.Argument.BindingMechanic;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -110,23 +104,20 @@ public class GanakSolverTest extends Common {
         final Or notOr = new Or(new Not(a), new Not(b), new Not(c));
         final And formula = new And(or, notOr);
 
-        List<String> variablesToKeep = new ArrayList<>();
-        variablesToKeep.add("a");
-        variablesToKeep.add("b");
-        VariableNamesList variableNamesToKeep = new VariableNamesList(variablesToKeep);
+        BooleanAssignment variablesToKeep = new BooleanAssignment(1, 2);
 
         IFormula cnf = formula.toCNF().orElseThrow();
         final Result<BigInteger> result = Computations.of(cnf)
                 .map(ComputeBooleanClauseList::new)
                 .map(ComputeCountSolutionGanak::new)
-                .set(ComputeCountSolutionGanak.VARIABLES_TO_KEEP, variableNamesToKeep)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_KEEP, variablesToKeep)
                 .computeResult();
         assertTrue(result.isPresent(), result::printProblems);
         assertEquals(BigInteger.valueOf(4),result.get());
     }
 
     @Test
-    public void formulaHas4SolutionsWithSlicing() {
+    public void formulaHas2SolutionsWithSlicing() {
         final Literal a = Expressions.literal("a");
         final Literal b = Expressions.literal("b");
         final Literal c = Expressions.literal("c");
@@ -135,17 +126,39 @@ public class GanakSolverTest extends Common {
         final Or notOr = new Or(new Not(a), new Not(b), new Not(c));
         final And formula = new And(or, notOr);
 
-        List<String> variableToRemove = new ArrayList<>();
-        variableToRemove.add("a");
-        VariableNamesList variableNameToRemove = new VariableNamesList(variableToRemove);
+        BooleanAssignment variablesToRemove = new BooleanAssignment(1, 2);
 
         IFormula cnf = formula.toCNF().orElseThrow();
         final Result<BigInteger> result = Computations.of(cnf)
                 .map(ComputeBooleanClauseList::new)
                 .map(ComputeCountSolutionGanak::new)
-                .set(ComputeCountSolutionGanak.VARIABLES_TO_REMOVE, variableNameToRemove)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_REMOVE, variablesToRemove)
                 .computeResult();
         assertTrue(result.isPresent(), result::printProblems);
-        assertEquals(BigInteger.valueOf(4),result.get());
+        assertEquals(BigInteger.valueOf(2),result.get());
+    }
+
+    @Test
+    public void formulaHas2SolutionsWithProjectionAndSlicing() {
+        final Literal a = Expressions.literal("a");
+        final Literal b = Expressions.literal("b");
+        final Literal c = Expressions.literal("c");
+
+        final Or or = new Or(a, b, c);
+        final Or notOr = new Or(new Not(a), new Not(b), new Not(c));
+        final And formula = new And(or, notOr);
+
+        BooleanAssignment variablesToRemove = new BooleanAssignment(1, 2);
+        BooleanAssignment variablesToKeep = new BooleanAssignment(1);
+
+        IFormula cnf = formula.toCNF().orElseThrow();
+        final Result<BigInteger> result = Computations.of(cnf)
+                .map(ComputeBooleanClauseList::new)
+                .map(ComputeCountSolutionGanak::new)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_REMOVE, variablesToRemove)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_KEEP, variablesToKeep)
+                .computeResult();
+        assertTrue(result.isPresent(), result::printProblems);
+        assertEquals(BigInteger.valueOf(2),result.get());
     }
 }
