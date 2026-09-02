@@ -25,25 +25,33 @@ import de.featjar.base.cli.ListOption;
 import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
 import de.featjar.base.computation.IComputation;
-import de.featjar.base.io.format.IFormat;
-import de.featjar.formula.VariableMap;
-import de.featjar.formula.assignment.BooleanAssignmentGroups;
+import de.featjar.base.data.Result;
+import de.featjar.formula.assignment.BooleanAssignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-import de.featjar.formula.combination.VariableSetsCombinationSpecification;
-import de.featjar.formula.io.csv.BooleanAssignmentGroupsCSVFormat;
 
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * A command which counts the number of satisfying assignments of a formula using Ganak, optionally with 
+ * projected or sliced literals.
+ */
 public class CountCommand extends AGanakAnalysisCommand<BigInteger> {
+
+    /**
+     * Literals to be removed
+     */
+    public static final ListOption<String> LITERALS_SLICE_OPTION = (ListOption<String>)
+            Option.newListOption("slice", Option.StringParser).setDescription("Literals to be removed.");
+
     /**
     * Literals to be kept
     */
     public static final ListOption<String> LITERALS_PROJECT_OPTION = (ListOption<String>)
             Option.newListOption("project", Option.StringParser)
                     .setDescription(
-                            "Literals to be projected. If not set, all features will be projected.");
+                            "Literals to be projected. If not set, all features will be projected. The slice option has a higher priority, i.e. if both the project and slice option contain the same literal, it will be removed.");
 
     @Override
     public Optional<String> getDescription() {
@@ -53,12 +61,34 @@ public class CountCommand extends AGanakAnalysisCommand<BigInteger> {
     @Override
     public IComputation<BigInteger> newAnalysis(
             OptionList optionParser, IComputation<BooleanAssignmentList> formula) {
+        List<String> sliceLiterals = 
+                optionParser.getResult(LITERALS_SLICE_OPTION).orElse(List.of());
         List<String> projectLiterals = 
                 optionParser.getResult(LITERALS_PROJECT_OPTION).orElse(List.of());
-        VariableNamesList variablesToKeep = new VariableNamesList(projectLiterals);
-           
+
+        // already compute result in order to obtain the VariableMap
+        formula.computeResult();
+
+        // retrieve variable indices using the VariableMap
+        int[] sliceIndices = sliceLiterals.stream()
+          .map(variableMap::get)
+          .filter(Result::isPresent)
+          .mapToInt(Result::get)
+          .toArray();
+
+        int[] projectIndices = projectLiterals.stream()
+          .map(variableMap::get)
+          .filter(Result::isPresent)
+          .mapToInt(Result::get)
+          .toArray();
+
+        // set the variable indices as dependencies of ComputeCountSolutionGanak
+        BooleanAssignment variablesToRemove = new BooleanAssignment(sliceIndices);
+        BooleanAssignment variablesToKeep = new BooleanAssignment(projectIndices);
+
         return formula.map(ComputeCountSolutionGanak::new)
-        .set(ComputeCountSolutionGanak.VARIABLES_TO_KEEP, variablesToKeep);
+            .set(ComputeCountSolutionGanak.VARIABLES_TO_REMOVE, variablesToRemove)
+            .set(ComputeCountSolutionGanak.VARIABLES_TO_KEEP, variablesToKeep);
     }
 
     @Override
