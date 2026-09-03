@@ -90,9 +90,18 @@ public class GanakSolver implements ISolver {
     public Result<BigInteger> countSolution() {
         isTimeoutOccurred = false;
         GanakBinary extension = FeatJAR.extension(GanakBinary.class);
+
         try (TempFile tempFile = new TempFile("ganakInput", ".dimacs")) {
-            IO.save(formula, tempFile.getPath(), new BooleanAssignmentListDimacsFormat());
-            //System.out.println(formula);
+            // the input format of the Ganak Solver requires a comment which indicates the type of model counting 
+            // at the beginning of the file, here mc just stands for model counting (without projection)
+            StringBuilder fileContent = new StringBuilder("c t mc \n");
+
+            // append the formula in DIMACS-format to the file
+            String formulaString = IO.print(formula, new BooleanAssignmentListDimacsFormat());
+            fileContent.append(formulaString);
+
+            IO.write(fileContent.toString(), tempFile.getPath());
+
             Process process = extension.getProcess(
                     tempFile.getPath().toString());
             return process.get().mapResult(this::parseCount);
@@ -112,18 +121,22 @@ public class GanakSolver implements ISolver {
         isTimeoutOccurred = false;
         GanakBinary extension = FeatJAR.extension(GanakBinary.class);
         try (TempFile tempFile = new TempFile("ganakInput", ".dimacs")) {
-            IO.save(formula, tempFile.getPath(), new BooleanAssignmentListDimacsFormat());
+            // the input format of the Ganak Solver requires a comment which indicates the type of model counting 
+            // at the beginning of the file, here pmc stands for projected model counting
+            StringBuilder fileContent = new StringBuilder("c t pmc \n");
 
-            // construct a DIMACS comment which indicates which variables are in 
-            // the projection set 
-            String comment = "c p show ";
+            // append the formula in DIMACS-format to the file
+            String formulaString = IO.print(formula, new BooleanAssignmentListDimacsFormat());
+            fileContent.append(formulaString);
+
+            // construct a DIMACS comment which indicates which variables are in the projection set 
+            fileContent.append("c p show ");
             for (int index : include.get()) {
-                comment += index + " ";
+                fileContent.append(index + " ");
             }
-            comment += "0 \n";
+            fileContent.append("0 \n");
 
-            // append the comment as the last line to the DIMACS file
-            IO.append(comment, tempFile.getPath());
+            IO.write(fileContent.toString(), tempFile.getPath());
             
             Process process = extension.getProcess(
                     tempFile.getPath().toString());
