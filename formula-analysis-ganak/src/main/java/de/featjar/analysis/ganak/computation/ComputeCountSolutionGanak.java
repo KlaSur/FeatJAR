@@ -33,7 +33,8 @@ import java.util.List;
 
 /**
  * An analysis for computing the number of satisfying assignments of a formula, optionally with 
- * projection or slicing, using the Ganak Solver.
+ * projection or slicing, using the Ganak Solver. It uses the default probabilistic count of the 
+ * Ganak Solver.
  */
 public class ComputeCountSolutionGanak extends AGanakAnalysis<BigInteger> {
     /**
