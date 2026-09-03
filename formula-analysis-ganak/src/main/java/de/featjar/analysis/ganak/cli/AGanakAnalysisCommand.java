@@ -20,11 +20,15 @@
  */
 package de.featjar.analysis.ganak.cli;
 
+import java.util.stream.Collectors;
+
 import de.featjar.analysis.AAnalysisCommand;
 import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.computation.IComputation;
+import de.featjar.base.data.Result;
+import de.featjar.base.io.format.IFormat;
 import de.featjar.formula.VariableMap;
 import de.featjar.formula.assignment.BooleanAssignmentList;
 import de.featjar.formula.assignment.conversion.ComputeBooleanClauseList;
@@ -33,6 +37,11 @@ import de.featjar.formula.computation.ComputeNNFFormula;
 import de.featjar.formula.io.FormulaFormats;
 import de.featjar.formula.structure.IFormula;
 
+/**
+ * A command which computes an analysis result for a formula using Ganak.
+ * 
+ * @param <T>  the type of the analysis result
+ */
 public abstract class AGanakAnalysisCommand<T> extends AAnalysisCommand<T> {
 
     /**
@@ -42,15 +51,32 @@ public abstract class AGanakAnalysisCommand<T> extends AAnalysisCommand<T> {
             .setDescription("Seed for the pseudo random generator") //
             .setDefaultValue(1L);
 
+    /**
+     * Option for setting the input format of the formula.
+     */
+    public static final Option<String> INPUT_FORMAT = Option.newStringEnumOption(
+                    "input-format",
+                    FormulaFormats.getInstance().getExtensions().stream()
+                            .filter(IFormat::supportsParse)
+                            .map(IFormat::getName)
+                            .collect(Collectors.toList()))
+            .setDescription("Format of the input. If not specified, tries to auto detect.");
+
     protected IFormula inputFormula;
     protected VariableMap variableMap;
 
     @Override
     protected IComputation<T> newComputation(OptionList optionParser) {
-        inputFormula = readFromInput(optionParser, FormulaFormats.getInstance()).orElseThrow();
+        Result<IFormat<IFormula>> userInputFormat =
+                optionParser.getResult(INPUT_FORMAT).mapOptional(FormulaFormats.getInstance()::getFormatByName);
+        Result<IFormula> parseResult = userInputFormat.isPresent()
+                ? readFromInput(optionParser, userInputFormat.get())
+                : readFromInput(optionParser, FormulaFormats.getInstance());
+        IFormula userInput = parseResult.get();
+        
         return newAnalysis(
                 optionParser,
-                Computations.of(inputFormula)
+                Computations.of(userInput)
                         .map(ComputeNNFFormula::new)
                         .map(ComputeCNFFormula::new)
                         .map(ComputeBooleanClauseList::new)
