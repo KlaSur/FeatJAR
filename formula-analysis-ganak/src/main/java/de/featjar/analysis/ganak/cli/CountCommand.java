@@ -40,13 +40,13 @@ import java.util.Optional;
 public class CountCommand extends AGanakAnalysisCommand<BigInteger> {
 
     /**
-     * Literals to be removed
+     * Option for setting the literals to be removed
      */
     public static final ListOption<String> LITERALS_SLICE_OPTION = (ListOption<String>)
             Option.newListOption("slice", Option.StringParser).setDescription("Literals to be removed.");
 
     /**
-    * Literals to be kept
+    * Option for setting the literals to be kept
     */
     public static final ListOption<String> LITERALS_PROJECT_OPTION = (ListOption<String>)
             Option.newListOption("project", Option.StringParser)

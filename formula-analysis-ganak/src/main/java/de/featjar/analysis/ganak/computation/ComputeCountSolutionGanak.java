@@ -36,9 +36,15 @@ import java.util.List;
  * projection or slicing, using the Ganak Solver.
  */
 public class ComputeCountSolutionGanak extends AGanakAnalysis<BigInteger> {
+    /**
+     * Literals to be removed
+     */
     public static final Dependency<BooleanAssignment> VARIABLES_TO_REMOVE =
             Dependency.newDependency(BooleanAssignment.class);
 
+    /**
+     * Literals to be kept
+     */
     public static final Dependency<BooleanAssignment> VARIABLES_TO_KEEP =
             Dependency.newDependency(BooleanAssignment.class);
 
