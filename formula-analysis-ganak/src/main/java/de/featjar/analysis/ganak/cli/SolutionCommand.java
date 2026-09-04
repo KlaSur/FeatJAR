@@ -20,9 +20,7 @@
  */
 package de.featjar.analysis.ganak.cli;
 
-import de.featjar.analysis.ganak.computation.ComputeCountSolutionGanak;
 import de.featjar.analysis.ganak.computation.ComputeSolutionGanak;
-import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
 import de.featjar.base.computation.IComputation;
 import de.featjar.formula.assignment.BooleanAssignmentList;

@@ -68,12 +68,21 @@ public class ComputeCountSolutionGanak extends AGanakAnalysis<BigInteger> {
         // no variables specified -> normal model counting
         if (variablesToKeep.isEmpty() && variablesToRemove.isEmpty()) {
             return initializeSolver(dependencyList).countSolution();
-        // only projected variables specified
-        } else if (!variablesToKeep.isEmpty() && variablesToRemove.isEmpty()) {
-            include = variablesToKeep;
-        // as soon as sliced variables are specified, they have a higher priority 
-        // than projected variables
-        } else {
+        } 
+
+        // set inlcude set to the projection set as soon as a projection set 
+        // is given
+        include = variablesToKeep;
+
+        // remove slicing variables from projection set 
+        if (!include.isEmpty() && !variablesToRemove.isEmpty()) {
+            include = include.removeAll(variablesToRemove);
+        }
+
+        // prioritize variablesToRemove if projection set is empty:
+        // remove variablesToRemove from all variables in the formula and 
+        // ignore variablesToKeep
+        if (include.isEmpty()) {
             BooleanAssignmentList formula = FORMULA.get(dependencyList);
             include = formula.getVariableMap().getVariables();
             include = include.removeAll(variablesToRemove);

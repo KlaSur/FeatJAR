@@ -139,7 +139,31 @@ public class GanakSolverTest extends Common {
     }
 
     @Test
-    public void formulaHas2SolutionsWithProjectionAndSlicing() {
+    public void formulaHas2SolutionsWithMoreProjectionThanSlicing() {
+        final Literal a = Expressions.literal("a");
+        final Literal b = Expressions.literal("b");
+        final Literal c = Expressions.literal("c");
+
+        final Or or = new Or(a, b, c);
+        final Or notOr = new Or(new Not(a), new Not(b), new Not(c));
+        final And formula = new And(or, notOr);
+
+        BooleanAssignment variablesToRemove = new BooleanAssignment(1);
+        BooleanAssignment variablesToKeep = new BooleanAssignment(1, 2);
+
+        IFormula cnf = formula.toCNF().orElseThrow();
+        final Result<BigInteger> result = Computations.of(cnf)
+                .map(ComputeBooleanClauseList::new)
+                .map(ComputeCountSolutionGanak::new)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_REMOVE, variablesToRemove)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_KEEP, variablesToKeep)
+                .computeResult();
+        assertTrue(result.isPresent(), result::printProblems);
+        assertEquals(BigInteger.valueOf(2),result.get());
+    }
+
+    @Test
+    public void formulaHas2SolutionsWithMoreSlicingThanProjection() {
         final Literal a = Expressions.literal("a");
         final Literal b = Expressions.literal("b");
         final Literal c = Expressions.literal("c");
@@ -161,4 +185,29 @@ public class GanakSolverTest extends Common {
         assertTrue(result.isPresent(), result::printProblems);
         assertEquals(BigInteger.valueOf(2),result.get());
     }
+
+    @Test
+    public void formulaHas2SolutionsWithSameProjectionAndSlicing() {
+        final Literal a = Expressions.literal("a");
+        final Literal b = Expressions.literal("b");
+        final Literal c = Expressions.literal("c");
+
+        final Or or = new Or(a, b, c);
+        final Or notOr = new Or(new Not(a), new Not(b), new Not(c));
+        final And formula = new And(or, notOr);
+
+        BooleanAssignment variablesToRemove = new BooleanAssignment(1, 2);
+        BooleanAssignment variablesToKeep = new BooleanAssignment(1, 2);
+
+        IFormula cnf = formula.toCNF().orElseThrow();
+        final Result<BigInteger> result = Computations.of(cnf)
+                .map(ComputeBooleanClauseList::new)
+                .map(ComputeCountSolutionGanak::new)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_REMOVE, variablesToRemove)
+                .set(ComputeCountSolutionGanak.VARIABLES_TO_KEEP, variablesToKeep)
+                .computeResult();
+        assertTrue(result.isPresent(), result::printProblems);
+        assertEquals(BigInteger.valueOf(2),result.get());
+    }
+
 }
