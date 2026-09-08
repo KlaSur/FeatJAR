@@ -1,5 +1,6 @@
 import org.ysb33r.gradle.gnumake.GnuMakeBuild
 
+
 plugins {
     id 'java-library'
     id 'de.featjar.java-application'
@@ -14,9 +15,13 @@ dependencies {
 
 license {
     ext {
-        licence_url = 'https://github.com/FeatureIDE/FeatJAR-formula-analysis-cadical'
+        licence_url = 'https://github.com/FeatureIDE/FeatJAR-formula-analysis-kissat'
     }
 }
+
+
+//disable copyBinaries if the kissat binary is built locally
+copyBinaries.enabled = false
 
 // compile kissat locally by cloning the repo, executing the configure script and 
 // executing make
@@ -39,7 +44,6 @@ tasks.named('make', GnuMakeBuild) {
 // /.featjar-bin in the user home directory
 tasks.register('copyKissat', Copy) {
     dependsOn tasks.make
-    dependsOn tasks.assemble
 
     from 'kissat/build/kissat'
     from 'src/main/resources/bin/.'
@@ -55,3 +59,11 @@ tasks.register('copyKissat', Copy) {
     other.execute = false
     }
 }
+
+// ensure that copyKissat is executed before the common tasks
+configure([assemble, test, build, clean, javadoc, licenseFormatMain, licenseFormatTest, spotlessApply, publishToMavenLocal, release]) {
+    dependsOn copyKissat
+}
+
+
+

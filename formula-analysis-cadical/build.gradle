@@ -1,5 +1,6 @@
 import org.ysb33r.gradle.gnumake.GnuMakeBuild
 
+
 plugins {
     id 'java-library'
     id 'de.featjar.java-application'
@@ -17,6 +18,10 @@ license {
         licence_url = 'https://github.com/FeatureIDE/FeatJAR-formula-analysis-cadical'
     }
 }
+
+
+//disable copyBinaries if the cadical binary is built locally
+copyBinaries.enabled = false
 
 // compile cadical locally by cloning the repo, executing the configure script and 
 // executing make
@@ -39,7 +44,6 @@ tasks.named('make', GnuMakeBuild) {
 // /.featjar-bin in the user home directory
 tasks.register('copyCadical', Copy) {
     dependsOn tasks.make
-    dependsOn tasks.assemble
 
     from 'cadical/build/cadical'
     from 'src/main/resources/bin/.'
@@ -56,5 +60,9 @@ tasks.register('copyCadical', Copy) {
     }
 }
 
+// ensure that copyCadical is executed before the common tasks
+configure([assemble, test, build, clean, javadoc, licenseFormatMain, licenseFormatTest, spotlessApply, publishToMavenLocal, release]) {
+    dependsOn copyCadical
+}
 
 
