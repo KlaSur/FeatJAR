@@ -22,15 +22,14 @@
 package de.featjar.analysis;
 
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionParser;
+import de.featjar.base.cli.Options;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.data.Result;
 import de.featjar.formula.assignment.Assignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-import de.featjar.formula.assignment.BooleanSolution;
-import de.featjar.formula.assignment.IAssignment;
 import de.featjar.formula.assignment.conversion.ComputeBooleanClauseList;
 import de.featjar.formula.computation.ComputeCNFFormula;
 import de.featjar.formula.computation.ComputeNNFFormula;
@@ -40,27 +39,25 @@ public class CoreCommand extends ASolverCommand<Assignment> {
     /**
      * Option for specifying the solver.
      */
-    public static final Option<IAnalysis> SOLVER_TYPE = newSolverOption(
-        Core.class).setDescription("Type of the solver");
+    public static final Option<ICore> SOLVER_TYPE = Options.newChoiceOption(
+            "solver-type", name -> Result.ofOptional(
+            Core.getInstance().getSolverByName(name)),
+            Core.getInstance().getExtensions().stream()
+                                .map(IAnalysis::getName)
+                               .collect(Collectors.toList()))
+        .setDescription("Type of the solver");
 
     public IComputation<Assignment> newAnalysis(
             OptionParser optionParser, IComputation<IFormula> formula) {
         IComputation<BooleanAssignmentList> assignmentList = formula.map(ComputeNNFFormula::new)
                 .map(ComputeCNFFormula::new)
-                .map(ComputeBooleanClauseList::new)
-                .peekResult(getClass(), "variableMap", clauseList -> variableMap = clauseList.getVariableMap());
-
-        ICore solverType = (ICore) optionParser.get(SOLVER_TYPE);
-        IComputation<BooleanAssignmentList> booleanSolution = solverType.core(assignmentList);
-
-        IComputation<Assignment> assignment = variableMap.fromBooleanAssignmentListToAssignment(booleanSolution.get().get()).toComputation();
-
-        return assignment;
+                .map(ComputeBooleanClauseList::new);
+        return optionParser.get(SOLVER_TYPE).core(assignmentList);
     }
 
 
     @Override
     public Optional<String> getShortName() {
-        return Optional.of("core");
+        return Optional.of("core2");
     }
 }

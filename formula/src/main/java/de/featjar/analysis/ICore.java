@@ -22,11 +22,12 @@
 package de.featjar.analysis;
 
 import de.featjar.base.computation.IComputation;
+import de.featjar.formula.assignment.Assignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
 
 public interface ICore extends IAnalysis {
     /**
      * Retrieves core features.
      */
-    IComputation<BooleanAssignmentList> core(IComputation<BooleanAssignmentList> formula);
+    IComputation<Assignment> core(IComputation<BooleanAssignmentList> formula);
 }

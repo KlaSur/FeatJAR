@@ -23,11 +23,13 @@ package de.featjar.analysis.sat4j.computation;
 
 import de.featjar.analysis.ICore;
 import de.featjar.base.computation.IComputation;
+import de.featjar.formula.assignment.Assignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
 
 public class CoreSAT4J implements ICore {
-    public IComputation<BooleanAssignmentList> core(IComputation<BooleanAssignmentList> formula) {
-        return formula.map(ComputeCoreSAT4J::new);
+    public IComputation<Assignment> core(IComputation<BooleanAssignmentList> formula) {
+        return formula.map(ComputeCoreSAT4J::new)
+            .map(CoreSAT4J.class, "assignment-conversion", list -> list.getVariableMap().toAssignment(list.getFirst()));
     }
 
     public String getName() {

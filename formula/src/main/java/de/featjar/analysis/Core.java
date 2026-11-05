@@ -23,7 +23,7 @@ package de.featjar.analysis;
 
 import de.featjar.base.FeatJAR;
 
-public class Core extends AAnalysis<IAnalysis> {
+public class Core extends AAnalysis<ICore> {
     public static Core getInstance() {
         return FeatJAR.extensionPoint(Core.class);
     }

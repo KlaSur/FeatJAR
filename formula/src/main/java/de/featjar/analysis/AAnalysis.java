@@ -24,8 +24,8 @@ import java.util.Optional;
 
 import de.featjar.base.extension.AExtensionPoint;
 
-public abstract class AAnalysis<T> extends AExtensionPoint<IAnalysis> {
-    public Optional<IAnalysis> getSolverByName(String name) {
+public abstract class AAnalysis<T extends IAnalysis> extends AExtensionPoint<T> {
+    public Optional<T> getSolverByName(String name) {
         return name == null
                 ? Optional.empty()
                 : getExtensions().stream()
