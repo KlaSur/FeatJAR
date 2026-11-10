@@ -6,4 +6,7 @@
 	<point id="de.featjar.base.env.Binaries">
 		<extension id="de.featjar.analysis.kissat.bin.KissatBinary" />
 	</point>
+	<point id="de.featjar.analysis.GetSolution">
+		<extension id="de.featjar.analysis.kissat.computation.Kissat" />
+	</point>
 </extensions>

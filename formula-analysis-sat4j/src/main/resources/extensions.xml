@@ -12,4 +12,10 @@
 		<extension id="de.featjar.analysis.sat4j.cli.TWiseCoverageCommand" />
 		<extension id="de.featjar.analysis.sat4j.cli.YASACommand" />
 	</point>
+	<point id="de.featjar.analysis.GetSolution">
+		<extension id="de.featjar.analysis.sat4j.computation.GetSolutionSAT4J" />
+	</point>
+	<point id="de.featjar.analysis.Core">
+		<extension id="de.featjar.analysis.sat4j.computation.CoreSAT4J" />
+	</point>
 </extensions>

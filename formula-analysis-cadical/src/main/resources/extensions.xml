@@ -9,4 +9,10 @@
 		<extension id="de.featjar.analysis.cadical.bin.CadiCalBinary" />
 		<extension id="de.featjar.analysis.cadical.bin.CadiBackBinary" />
 	</point>
+	<point id="de.featjar.analysis.GetSolution">
+		<extension id="de.featjar.analysis.cadical.computation.GetSolutionCadical" />
+	</point>
+	<point id="de.featjar.analysis.Core">
+		<extension id="de.featjar.analysis.cadical.computation.CoreCadical" />
+	</point>
 </extensions>
