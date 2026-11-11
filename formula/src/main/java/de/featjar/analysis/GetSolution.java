@@ -23,7 +23,7 @@ package de.featjar.analysis;
 
 import de.featjar.base.FeatJAR;
 
-public class GetSolution extends AAnalysis<IAnalysis> {
+public class GetSolution extends AAnalysis<IGetSolution> {
     public static GetSolution getInstance() {
         return FeatJAR.extensionPoint(GetSolution.class);
     }

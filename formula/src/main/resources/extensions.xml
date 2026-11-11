@@ -26,7 +26,7 @@
 	<point id="de.featjar.formula.io.BooleanAssignmentListFormats" priority="10">
 		<extension id="de.featjar.formula.io.binary.BooleanAssignmentListGroupedBinaryFormat" />
 		<extension id="de.featjar.formula.io.binary.BooleanAssignmentListSimpleBinaryFormat" />
-		<extension id="de.featjar.formula.io.csv.BooleanAssignmentListCSVFormat" />
+		<extension id="de.featjar.formula.io.csv.BooleanAssignmentListCSVFormat" />r
 		<extension id="de.featjar.formula.io.csv.BooleanAssignmentListGroupedCSVFormat" />
 		<extension id="de.featjar.formula.io.dimacs.BooleanAssignmentListDimacsFormat" />
 		<extension id="de.featjar.formula.io.textual.BooleanAssignmentListSimpleTextFormat" />
@@ -38,5 +38,9 @@
 		<extension id="de.featjar.formula.cli.ConvertAssignmentFormatCommand" />
 		<extension id="de.featjar.formula.cli.ConvertFormulaFormatCommand" />
 		<extension id="de.featjar.formula.cli.PrintCommand" />
+		<extension id="de.featjar.analysis.GetSolutionCommand" />
+		<extension id="de.featjar.analysis.CoreCommand" />
 	</point>
+	<point id="de.featjar.analysis.GetSolution" priority="10" />
+	<point id="de.featjar.analysis.Core" priority="10" />
 </extensions>

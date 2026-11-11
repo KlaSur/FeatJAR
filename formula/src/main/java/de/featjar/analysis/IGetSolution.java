@@ -22,14 +22,14 @@
 package de.featjar.analysis;
 
 import de.featjar.base.computation.IComputation;
+import de.featjar.formula.assignment.Assignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-import de.featjar.formula.assignment.BooleanSolution;
 
 public interface IGetSolution extends IAnalysis {
     /**
      * Retrieves a solution.
      */
-    IComputation<BooleanSolution> getSolution(IComputation<BooleanAssignmentList> formula);
+    IComputation<Assignment> getSolution(IComputation<BooleanAssignmentList> formula);
 }
 
 

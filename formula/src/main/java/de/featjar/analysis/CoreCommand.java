@@ -58,6 +58,6 @@ public class CoreCommand extends ASolverCommand<Assignment> {
 
     @Override
     public Optional<String> getShortName() {
-        return Optional.of("core2");
+        return Optional.of("core");
     }
 }
