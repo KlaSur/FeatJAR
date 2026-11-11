@@ -44,8 +44,9 @@ public class SolutionCommand extends AKissatAnalysisCommand<BooleanAssignmentLis
     @Override
     public IComputation<BooleanAssignmentList> newAnalysis(
             OptionParser optionParser, IComputation<BooleanAssignmentList> formula) {
-        return formula.map(ComputeGetSolutionKissat::new)
-                .mapResult(SolutionCommand.class, "group", a -> new BooleanAssignmentList(variableMap, a));
+        return formula.map(ComputeGetSolutionKissat::new);
+                
+        // .mapResult(SolutionCommand.class, "group", a -> new BooleanAssignmentList(variableMap, a));
     }
 
     @Override
