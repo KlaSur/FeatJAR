@@ -68,7 +68,7 @@ public class CadiCalSolver implements ISolver {
         return isTimeoutOccurred;
     }
 
-    public Result<BooleanSolution> getSolution() {
+    public Result<BooleanAssignmentList> getSolution() {
         isTimeoutOccurred = false;
         CadiCalBinary extension = FeatJAR.extension(CadiCalBinary.class);
         try (TempFile tempFile = new TempFile("cadiCalInput", ".dimacs")) {
@@ -90,7 +90,7 @@ public class CadiCalSolver implements ISolver {
         }
     }
 
-    private BooleanSolution parseSolution(List<String> lines) {
+    private BooleanAssignmentList parseSolution(List<String> lines) {
         if (lines.isEmpty()) {
             throw new RuntimeException("Not output from solver");
         }
@@ -100,12 +100,13 @@ public class CadiCalSolver implements ISolver {
                 if (lines.size() < 2) {
                     throw new RuntimeException("Solver did not provide solution");
                 }
-                return new BooleanSolution(lines.stream()
+                BooleanSolution solution = new BooleanSolution(lines.stream()
                         .skip(1)
                         .map(l -> l.split(" "))
                         .flatMapToInt(s -> Arrays.stream(s).skip(1).mapToInt(Integer::parseInt))
                         .filter(v -> v != 0)
                         .toArray());
+                return new BooleanAssignmentList(formula.getVariableMap(), solution);
             case "c UNKNOWN":
                 isTimeoutOccurred = true;
                 return null;

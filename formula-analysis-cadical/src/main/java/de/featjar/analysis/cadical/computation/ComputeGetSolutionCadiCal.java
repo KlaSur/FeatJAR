@@ -24,10 +24,9 @@ import de.featjar.base.computation.IComputation;
 import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-import de.featjar.formula.assignment.BooleanSolution;
 import java.util.List;
 
-public class ComputeGetSolutionCadiCal extends ACadiCalAnalysis<BooleanSolution> {
+public class ComputeGetSolutionCadiCal extends ACadiCalAnalysis<BooleanAssignmentList> {
     public ComputeGetSolutionCadiCal(IComputation<BooleanAssignmentList> cnfFormula) {
         super(cnfFormula);
     }
@@ -37,7 +36,7 @@ public class ComputeGetSolutionCadiCal extends ACadiCalAnalysis<BooleanSolution>
     }
 
     @Override
-    public Result<BooleanSolution> compute(List<Object> dependencyList, Progress progress) {
+    public Result<BooleanAssignmentList> compute(List<Object> dependencyList, Progress progress) {
         return initializeSolver(dependencyList).getSolution();
     }
 }

@@ -44,8 +44,9 @@ public class SolutionCommand extends ACadicalAnalysisCommand<BooleanAssignmentLi
     @Override
     public IComputation<BooleanAssignmentList> newAnalysis(
             OptionParser optionParser, IComputation<BooleanAssignmentList> formula) {
-        return formula.map(ComputeGetSolutionCadiCal::new)
-                .mapResult(CoreCommand.class, "group", a -> new BooleanAssignmentList(variableMap, a));
+        return formula.map(ComputeGetSolutionCadiCal::new);
+             
+        // .mapResult(CoreCommand.class, "group", a -> new BooleanAssignmentList(variableMap, a));
     }
 
     @Override
