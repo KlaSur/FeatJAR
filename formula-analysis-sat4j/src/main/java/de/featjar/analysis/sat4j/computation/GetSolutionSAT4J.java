@@ -23,12 +23,13 @@ package de.featjar.analysis.sat4j.computation;
 
 import de.featjar.analysis.IGetSolution;
 import de.featjar.base.computation.IComputation;
+import de.featjar.formula.assignment.Assignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-import de.featjar.formula.assignment.BooleanSolution;
 
 public class GetSolutionSAT4J implements IGetSolution {
-    public IComputation<BooleanSolution> getSolution(IComputation<BooleanAssignmentList> formula) {
-        return formula.map(ComputeSolutionSAT4J::new);
+    public IComputation<Assignment> getSolution(IComputation<BooleanAssignmentList> formula) {
+        return formula.map(ComputeSolutionSAT4J::new)
+            .map(GetSolutionSAT4J.class, "assignment-conversion", list -> list.getVariableMap().toAssignment(list.getFirst()));
     }
 
     public String getName() {

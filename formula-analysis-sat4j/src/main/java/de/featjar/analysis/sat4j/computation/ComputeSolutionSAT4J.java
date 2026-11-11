@@ -29,11 +29,10 @@ import de.featjar.base.computation.IComputation;
 import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-import de.featjar.formula.assignment.BooleanSolution;
 import java.util.List;
 import java.util.Random;
 
-public class ComputeSolutionSAT4J extends ASAT4JAnalysis.Solution<BooleanSolution> {
+public class ComputeSolutionSAT4J extends ASAT4JAnalysis.Solution<BooleanAssignmentList> {
 
     public static final Dependency<ISelectionStrategy.NonParameterStrategy> SELECTION_STRATEGY =
             Dependency.newDependency(ISelectionStrategy.NonParameterStrategy.class);
@@ -47,7 +46,8 @@ public class ComputeSolutionSAT4J extends ASAT4JAnalysis.Solution<BooleanSolutio
     }
 
     @Override
-    public Result<BooleanSolution> compute(List<Object> dependencyList, Progress progress) {
+    public Result<BooleanAssignmentList> compute(List<Object> dependencyList, Progress progress) {
+        
         SAT4JSolutionSolver solver = (SAT4JSolutionSolver) createSolver(dependencyList);
         final NonParameterStrategy strategy = SELECTION_STRATEGY.get(dependencyList);
         switch (strategy) {
@@ -67,6 +67,6 @@ public class ComputeSolutionSAT4J extends ASAT4JAnalysis.Solution<BooleanSolutio
             default:
                 break;
         }
-        return solver.findSolution();
+        return solver.findSolution().map(solution -> new BooleanAssignmentList(BOOLEAN_CLAUSE_LIST.get(dependencyList).getVariableMap(), solution));
     }
 }
