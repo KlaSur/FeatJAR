@@ -23,13 +23,13 @@ package de.featjar.analysis;
 
 import de.featjar.base.computation.IComputation;
 import de.featjar.formula.assignment.Assignment;
-import de.featjar.formula.assignment.BooleanAssignmentList;
+import de.featjar.formula.structure.IFormula;
 
 public interface IGetSolution extends IAnalysis {
     /**
      * Retrieves a solution.
      */
-    IComputation<Assignment> getSolution(IComputation<BooleanAssignmentList> formula);
+    IComputation<Assignment> getSolution(IComputation<IFormula> formula);
 }
 
 

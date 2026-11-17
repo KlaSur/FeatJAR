@@ -29,7 +29,6 @@ import de.featjar.base.cli.OptionParser;
 import de.featjar.base.cli.Options;
 import de.featjar.base.computation.IComputation;
 import de.featjar.formula.assignment.Assignment;
-import de.featjar.formula.assignment.conversion.ComputeBooleanClauseList;
 import de.featjar.formula.computation.ComputeCNFFormula;
 import de.featjar.formula.computation.ComputeNNFFormula;
 import de.featjar.formula.structure.IFormula;
@@ -50,8 +49,7 @@ public class GetSolutionCommand extends ASolverCommand<Assignment> {
     public IComputation<Assignment> newAnalysis(
             OptionParser optionParser, IComputation<IFormula> formula) {
         return optionParser.get(SOLVER_TYPE).getSolution(formula.map(ComputeNNFFormula::new)
-                .map(ComputeCNFFormula::new)
-                .map(ComputeBooleanClauseList::new));
+                .map(ComputeCNFFormula::new));
     }
 
     @Override

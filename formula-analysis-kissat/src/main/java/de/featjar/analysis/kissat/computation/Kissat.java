@@ -24,11 +24,13 @@ package de.featjar.analysis.kissat.computation;
 import de.featjar.analysis.IGetSolution;
 import de.featjar.base.computation.IComputation;
 import de.featjar.formula.assignment.Assignment;
-import de.featjar.formula.assignment.BooleanAssignmentList;
+import de.featjar.formula.assignment.conversion.ComputeBooleanClauseList;
+import de.featjar.formula.structure.IFormula;
 
 public class Kissat implements IGetSolution {
-    public IComputation<Assignment> getSolution(IComputation<BooleanAssignmentList> formula) {
-        return formula.map(ComputeGetSolutionKissat::new)
+    public IComputation<Assignment> getSolution(IComputation<IFormula> formula) {
+        return formula.map(ComputeBooleanClauseList::new)
+            .map(ComputeGetSolutionKissat::new)
             .map(Kissat.class, "assignment-conversion", list -> list.getVariableMap().toAssignment(list.getFirst()));
     }
 
