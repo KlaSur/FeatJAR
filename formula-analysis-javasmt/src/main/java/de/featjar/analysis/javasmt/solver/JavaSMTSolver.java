@@ -22,6 +22,8 @@ package de.featjar.analysis.javasmt.solver;
 
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.Result;
+import de.featjar.formula.assignment.Assignment;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -130,17 +132,21 @@ public class JavaSMTSolver {
                 javaSMTFormula.getContext().newProverEnvironment(ProverOptions.GENERATE_MODELS)) {
             prover.addConstraint(formula);
             if (!prover.isUnsat()) {
-                final LinkedHashMap<Integer, Object> solution = new LinkedHashMap<>();
+                final LinkedHashMap<String, Object> solution = new LinkedHashMap<>();
 
                 for (ValueAssignment assignment : prover.getModel()) {
-                    solution.put(
-                            javaSMTFormula
-                                    .getVariableMap()
-                                    .get(assignment.getName())
-                                    .orElseThrow(),
-                            assignment.getValue());
+                    solution.put(assignment.getName(), assignment.getValue());
+
+                    // solution.put(
+                    //         javaSMTFormula
+                    //                 .getVariableMap()
+                    //                 .get(assignment.getName())
+                    //                 .orElseThrow(),
+                    //         assignment.getValue());
                 }
-                return new de.featjar.formula.assignment.ValueAssignment(solution);
+
+                Assignment assignment = new Assignment(solution);
+                return new de.featjar.formula.assignment.ValueAssignment(assignment, javaSMTFormula.getVariableMap());
             } else {
                 return null;
             }

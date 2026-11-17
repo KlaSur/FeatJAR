@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -38,17 +39,21 @@ import java.util.stream.Collectors;
 public class ValueAssignment implements IAssignment<Integer, Object>, IValueRepresentation {
 
     protected final LinkedHashMap<Integer, Object> variableValuePairs;
+    protected final VariableMap variableMap;
 
     public ValueAssignment() {
         this.variableValuePairs = Maps.empty();
+        this.variableMap = null;
     }
 
     public ValueAssignment(LinkedHashMap<Integer, Object> variableValuePairs) {
         this.variableValuePairs = variableValuePairs;
+        this.variableMap = null;
     }
 
     public ValueAssignment(Assignment assignment, VariableMap map) {
         this.variableValuePairs = Maps.empty();
+        this.variableMap = map;
         assignment.getAll().forEach((key, value) -> {
             Result<Integer> index = map.get(key);
 
@@ -61,6 +66,7 @@ public class ValueAssignment implements IAssignment<Integer, Object>, IValueRepr
 
     public ValueAssignment(Object... variableValuePairs) {
         this.variableValuePairs = Maps.empty();
+        this.variableMap = null;
         if (variableValuePairs.length % 2 == 1)
             throw new IllegalArgumentException("expected a list of variable-value pairs for this value assignment");
         for (int i = 0; i < variableValuePairs.length; i += 2) {
@@ -70,6 +76,10 @@ public class ValueAssignment implements IAssignment<Integer, Object>, IValueRepr
 
     public ValueAssignment(ValueAssignment valueAssignment) {
         this(new LinkedHashMap<>(valueAssignment.variableValuePairs));
+    }
+
+    public Optional<VariableMap> getVariableMap() {
+        return Optional.of(this.variableMap);
     }
 
     @Override

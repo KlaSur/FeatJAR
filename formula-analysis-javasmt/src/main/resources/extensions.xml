@@ -11,4 +11,10 @@
 	<point id="de.featjar.base.env.Binaries">
 		<extension id="de.featjar.analysis.javasmt.bin.JavaSMTBinary" />
 	</point>
+	<point id="de.featjar.analysis.GetSolution">
+		<extension id="de.featjar.analysis.javasmt.computation.GetSolutionJavaSMT" />
+	</point>
+	<point id="de.featjar.analysis.Core">
+		<extension id="de.featjar.analysis.javasmt.computation.CoreJavaSMT" />
+	</point>
 </extensions>
