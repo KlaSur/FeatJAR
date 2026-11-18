@@ -24,13 +24,14 @@ import de.featjar.analysis.javasmt.computation.ComputeCore;
 import de.featjar.analysis.javasmt.computation.ComputeJavaSMTFormula;
 import de.featjar.base.cli.OptionParser;
 import de.featjar.base.computation.IComputation;
+import de.featjar.formula.assignment.Assignment;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.term.value.Variable;
 import java.util.Map;
 import java.util.Optional;
 import org.sosy_lab.java_smt.SolverContextFactory.Solvers;
 
-public class CoreCommand extends AJavasmtAnalysisCommand<Map<Variable, Object>> {
+public class CoreCommand extends AJavasmtAnalysisCommand<Assignment> {
 
     @Override
     public Optional<String> getDescription() {
@@ -39,7 +40,7 @@ public class CoreCommand extends AJavasmtAnalysisCommand<Map<Variable, Object>> 
     }
 
     @Override
-    public IComputation<Map<Variable, Object>> newAnalysis(
+    public IComputation<Assignment> newAnalysis(
             OptionParser optionParser, IComputation<? extends IFormula> formula) {
         return formula.map(ComputeJavaSMTFormula::new)
                 .set(ComputeJavaSMTFormula.SOLVER, Solvers.Z3)

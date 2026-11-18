@@ -28,8 +28,10 @@ import de.featjar.base.computation.Dependency;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
+import de.featjar.formula.assignment.Assignment;
 import de.featjar.formula.structure.term.value.Variable;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.sosy_lab.java_smt.SolverContextFactory.Solvers;
@@ -41,7 +43,7 @@ import org.sosy_lab.java_smt.api.Formula;
  * @author Sebastian Krieter
  * @author Klara Surmeier
  */
-public class ComputeCore extends AJavaSMTAnalysis<Map<Variable, Object>> {
+public class ComputeCore extends AJavaSMTAnalysis<Assignment> {
     public static final Dependency<VariableNamesList> VARIABLES_OF_INTEREST =
             Dependency.newDependency(VariableNamesList.class);
 
@@ -49,12 +51,12 @@ public class ComputeCore extends AJavaSMTAnalysis<Map<Variable, Object>> {
         super(formula, new ComputeConstant<>(new VariableNamesList()));
     }
 
-    protected ComputeCore(AJavaSMTAnalysis<Map<Variable, Object>> other) {
+    protected ComputeCore(AJavaSMTAnalysis<Assignment> other) {
         super(other);
     }
 
     @Override
-    public Result<Map<Variable, Object>> compute(List<Object> dependencyList, Progress progress) {
+    public Result<Assignment> compute(List<Object> dependencyList, Progress progress) {
         Result<JavaSMTSolver> solverResult = getCompatibleSolver(dependencyList, Solvers.Z3);
         if (solverResult.isEmpty()) {
             return solverResult.nullify();
@@ -77,16 +79,16 @@ public class ComputeCore extends AJavaSMTAnalysis<Map<Variable, Object>> {
             variabelsToMaximalRanges.put(variableToJavaSMT.getVariable(), maximalRange);
         }
 
-        Map<Variable, Object> coreVariableRanges = new HashMap<Variable, Object>();
+        LinkedHashMap<String, Object> coreVariableRanges = new LinkedHashMap<String, Object>();
         for (Map.Entry<Variable, Object> variableToMinimalRange : variabelsToMinimalRanges.entrySet()) {
             Variable variable = variableToMinimalRange.getKey();
             Object minimalRange = variableToMinimalRange.getValue();
 
             if (variabelsToMaximalRanges.get(variable).equals(minimalRange)) {
-                coreVariableRanges.put(variable, minimalRange);
+                coreVariableRanges.put(variable.getName(), minimalRange);
             }
         }
 
-        return Result.ofNullable(coreVariableRanges);
+        return Result.ofNullable(new Assignment(coreVariableRanges));
     }
 }
